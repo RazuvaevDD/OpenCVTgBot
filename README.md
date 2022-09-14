@@ -1,2 +1,2 @@
 # OpenCVTgBot
-Telegram bot for processing bultimedia using OpenCV
+Telegram bot for processing multimedia using OpenCV
