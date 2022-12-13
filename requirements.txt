@@ -1,0 +1,8 @@
+pytesseract
+#tesseract-ocr
+opencv-python
+imutils
+telepot
+
+# ---
+Sketcher

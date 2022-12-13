@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+# https://telepot.readthedocs.io/en/latest/reference.html
+
+import sys
+import os
+import time
+
+import telepot
+from telepot.loop import MessageLoop
+from pprint import pprint
+
+from texture import texture
+from counter import counter
+from corner import corner
+from lupa import lupa
+
+
+BOT_TOKEN = os.environ['OPENCV_BOT_TOKEN']
+CHAT_ID   = int( os.environ['OPENCV_BOT_CHAT_ID'] )
+
+def usage():
+    return "Server was started..."
+
+
+def handle( msg ):
+    content_type, chat_type, chat_id = telepot.glance( msg )
+    if content_type == 'photo':
+        case = None
+        try:
+            case = msg['caption']
+            pprint( msg['caption'] )
+        except KeyError:
+            err_msg = f"[ERROR] Set caption for message!\n{usage()}"
+            print( err_msg )
+            bot.sendMessage( CHAT_ID, err_msg )
+            return
+
+        img_path = f"./chat_files/{msg['photo'][-1]['file_unique_id']}.png"
+        _, file_name = os.path.split( img_path )
+
+        bot.download_file( msg['photo'][-1]['file_id'], img_path )
+
+        if case == "1":
+            status = texture( img_path )
+            # bot.sendMessage( CHAT_ID, 'Command 1' )
+            if status:
+                bot.sendPhoto( CHAT_ID,
+                               photo=open( f"./processed_files/{file_name}", 'rb'),
+                               caption='Команда 1: Результат нахождения направления текстуры.')
+            else:
+                bot.sendMessage( CHAT_ID, 'Команда 1: ERROR' )
+
+            # text_number, status = number_recognition( img_path )
+            # if status:
+            #     bot.sendPhoto( CHAT_ID,
+            #                    photo=open( f"./processed_files/{file_name}", 'rb'),
+            #                    caption=f'recognized_num: {text_number}')
+            # else:
+            #     bot.sendMessage( CHAT_ID, f'recognized_num: {text_number}' )
+        elif case == "2":
+            status = corner( img_path )
+            if status:
+                bot.sendPhoto( CHAT_ID,
+                               photo=open( f"./processed_files/{file_name}", 'rb'),
+                               caption='Команда 2: Результат нахождения углов (отмечено красным).')
+            else:
+                bot.sendMessage( CHAT_ID, 'Команда 2: ERROR' )
+        elif case == "3":
+            status = lupa( img_path )
+            if status:
+                bot.sendPhoto( CHAT_ID,
+                               photo=open( f"./processed_files/{file_name}", 'rb'),
+                               caption='Команда 3: Результат удаления радиального искажения.')
+            else:
+                bot.sendMessage( CHAT_ID, 'Команда 3: ERROR' )
+        elif case == "4":
+            status = counter( img_path )
+            if status:
+                bot.sendPhoto( CHAT_ID,
+                               photo=open( f"./processed_files/{file_name}", 'rb'),
+                               caption='Команда 4: Результат подсчета монет.')
+            else:
+                bot.sendMessage( CHAT_ID, 'Команда 4: ERROR' )
+            
+        # elif case == "background":
+        #     change_background( img_path )
+        #     bot.sendVideo( CHAT_ID,
+        #                    video=open(f"./processed_files/{file_name.split('.')[0]}.mp4", 'rb'),
+        #                    caption=f'processed_video:')
+        else:
+            bot.sendMessage( CHAT_ID, 'Wrong command. Please try again.' )
+            print( "Wrong case, try again!" )
+            return
+
+        print( "[INFO] Processing done" )
+
+    elif content_type == 'video':
+        pass
+    elif content_type == 'text':
+        pass
+    else:
+        print( "Type is not handled" )
+
+bot = telepot.Bot( BOT_TOKEN )
+MessageLoop( bot, handle ).run_as_thread()
+
+print( usage() )
+
+# Keep the program running.
+while True:
+    time.sleep( 1200 )
+
